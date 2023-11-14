@@ -6,7 +6,7 @@ function [r, v] = kep2car(kep)
 %   [r, v] = kep2car(kep)
 %
 % DESCRIPTION:
-%   Conversion function from Keplerian elements to Cartesian coordinates. Angles in radians.
+%   Conversion function from Keplerian elements to Cartesian coordinates. Angles in radiants.
 %
 % INPUT:
 %   kep = [a, e, i, OM, om, th, mu] [1x7] Keplerian elements vector
@@ -16,11 +16,11 @@ function [r, v] = kep2car(kep)
 %   OM                              [1x1] RAAN [rad]
 %   om                              [1x1] Pericentre anomaly [rad]
 %   th                              [1x1] True anomaly [rad]
-%   mu                              [1x1] Gravitational parametre [km^3/s^2]
+%   mu                              [1x1] Gravitational parameter [km^3/s^2]
 %
 % OUTPUT:
-%   r[3x1] Position vector [km]
-%   v[3x1] Velocity vector [km/s]
+%   r [3x1] Position vector [km]
+%   v [3x1] Velocity vector [km/s]
 %
 % CONTRIBUTORS:
 %   Aditya Kumar
@@ -33,14 +33,14 @@ function [r, v] = kep2car(kep)
 % -------------------------------------------------------------------------
 
 
-%Definition of keplerian elements
+% Definition of keplerian elements
 a  = kep(1) ;            %[km]           Semi-major axis
 e  = kep(2) ;            %[-]            Eccentricity
 i  = kep(3) ;            %[rad]          Inclination
 OM = kep(4) ;            %[rad]          RAAN
 om = kep(5) ;            %[rad]          Pericentre anomaly
 th = kep(6) ;            %[rad]          True anomaly
-mu = kep(7) ;            %[km^3/s^2]     Gravitational parametre
+mu = kep(7) ;            %[km^3/s^2]     Gravitational parameter
 
 % Calculation of semi-latus rectum and norm of position vector
 p = a .* ( 1 - e.^2 );

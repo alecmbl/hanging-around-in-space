@@ -1,6 +1,6 @@
 function [R,V] = two_body_problem_fun( r0, v0, mu, varargin )
 %
-% Two-Body Problem Solver for the unperturbed problem.
+% Two-Body Problem Solver
 %
 % PROTOTYPE:
 %   [R,V] = two_body_problem_fun( r0, v0, mu )
@@ -8,11 +8,11 @@ function [R,V] = two_body_problem_fun( r0, v0, mu, varargin )
 % DESCRIPTION
 %   Solve the unperturbed two body problem, integrating numerically the
 %   equations, given the initial conditions, position and velocity.
-%   Return the state vector of the body for one orbital period.
+%   Return the state vector of the body fo one orbital period.
 %
 % INPUT:
-%   r0 [3x1] Initial position of the body ( r0_x; r0_y; r0_z ) [km]
-%   v0 [3x1] Initial velocity of the body ( v0_x; v0_y; v0_z ) [km/s]
+%   r0[3x1] Initial position of the body ( r0_x; r0_y; r0_z ) [km]
+%   v0[3x1] Initial velocity of the body ( v0_x; v0_y; v0_z ) [km/s]
 %   varargin Variables to plot the orbit and it's main properties
 %
 % OUTPUT:
@@ -53,10 +53,9 @@ options = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-14 );
 R = Y(:,1:3);
 V = Y(:,4:6);
 
-
+% Plot the orbit centered about the earth
 if nargin == 4
 
-    % Plot the orbit centered around the Earth
     figure()
         plot3( R(:,1), R(:,2), R(:,3), '.r' );
         xlabel('x [km]'); ylabel('y [km]'); zlabel('z [km]'); grid on; axis equal;
@@ -74,7 +73,7 @@ elseif nargin == 5
     E = (V(:,1).^2 + V(:,2).^2 + V(:,3).^2)/2 - mu*(1./vecnorm(R,2,2)); % Kinetic Energy [km^2/s^2]
     
     
-    % Plot Angular Momentum in time
+    %Plot Angular Momentum in time
     figure()
     hold on
         title('Angular Momentum','FontWeight','bold','FontSize',14);
@@ -86,10 +85,10 @@ elseif nargin == 5
         xlabel('$t \left [ s \right ]$');
         hl = legend('show');
         set(hl, 'Interpreter','latex')
-        grid on;   
+        grid on; ylim([-11e4 11e4]);   
         hold off
     
-    % Plot Eccentricity Vector in time
+    %Plot Eccentricity Vector in time
     figure()
     hold on
         title('Eccentricity Vector','FontWeight','bold','FontSize',14);
@@ -101,10 +100,10 @@ elseif nargin == 5
         xlabel('$t \left [ s \right ]$');
         hl = legend('show');
         set(hl, 'Interpreter','latex')
-        grid on;  
+        grid on; ylim([-0.5e-4 2.5e-4]); 
     hold off
     
-    % Plot dot product e-h in time
+    %Plot dot product e-h in time
     figure()
     hold on
         title('$e \cdot h$','FontWeight','bold','FontSize',14);
@@ -114,15 +113,14 @@ elseif nargin == 5
         xlabel('$t \left [ s \right ]$'); grid on;
     hold off
     
-    % Plot Kinetic Energy in time
+    %Plot Kinetic Energy in time
     figure()
     hold on
         title('Kinetic Energy','FontWeight','bold','FontSize',14);
         plot(T,E,'b','LineWidth',2); 
         ylabel('$E \; \left  [ km^2/s \right ]$'); 
         xlabel('$t \left [ s \right ]$'); grid on;
-    hold off
-    
+hold off
 end
 
 end

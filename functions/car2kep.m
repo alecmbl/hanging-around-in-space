@@ -1,9 +1,9 @@
-function [a, e, i, Om, om, theta] = car2kep(rr,vv,mu)
+function kep = car2kep(rr,vv,mu)
 %
 % Transformation from Cartesian state to orbital elements
 % 
 % PROTOTYPE:
-%   [a,e,i,Om, om, theta] = rv2kp(rr,vv,mu)
+%   kep = rv2kp(rr,vv,mu)
 %
 % DESCRIPTION:
 %   Conversion function from Cartesian coordinates to Keplerian elements.
@@ -20,6 +20,9 @@ function [a, e, i, Om, om, theta] = car2kep(rr,vv,mu)
 %   Om    [1x1] RAAN [rad]
 %   om    [1x1] Pericenter anomaly [rad]
 %   theta [1x1] True anomaly [rad]
+%
+%   kep   [1x6] Vector that contains all Keplerian elements
+%
 %
 %   Commented part at the end of the code gives the output of i,Om,om ...
 %   and theta in [deg] instead of [rad]
@@ -110,6 +113,7 @@ if theta < toll
     theta = 0;
 end
 
+kep = [a, e, i, Om, om, theta];
 
 % results in [deg]
 % i = i*180/pi;
@@ -118,5 +122,6 @@ end
 % theta = theta*180/pi;
 
 end
+
 
 

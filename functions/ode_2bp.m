@@ -3,7 +3,7 @@ function dy = ode_2bp( ~, y, mu )
 % ode_2bp ODE system for the unperturbed two-body problem (Keplerian motion)
 %
 % PROTOTYPE:
-%   dy = ode_2bp( ~, y, mu )
+%   dy = ode_2bp( ~, y, mu ) 
 %
 % DESCRIPTION:
 %   Returns the ode function of the unperturbed two body problem, 

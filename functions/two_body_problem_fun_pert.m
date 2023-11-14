@@ -1,14 +1,14 @@
-function [R,V] = two_body_problem_fun( r0, v0, mu, varargin )
+function [R_pert,V_pert] = two_body_problem_fun_pert( r0, v0, mu, varargin )
 %
-% Two-Body Problem Solver for the unperturbed problem.
+% Two-Body Problem Solver for the perturbed problem.
 %
 % PROTOTYPE:
-%   [R,V] = two_body_problem_fun( r0, v0, mu )
+%   [R_pert,V_pert] = two_body_problem_fun( r0, v0, mu )
 %
 % DESCRIPTION
-%   Solve the unperturbed two body problem, integrating numerically the
+%   Solve the perturbed two body problem, integrating numerically the
 %   equations, given the initial conditions, position and velocity.
-%   Return the state vector of the body for one orbital period.
+%   Return the state vector of the body.
 %
 % INPUT:
 %   r0 [3x1] Initial position of the body ( r0_x; r0_y; r0_z ) [km]
@@ -16,7 +16,7 @@ function [R,V] = two_body_problem_fun( r0, v0, mu, varargin )
 %   varargin Variables to plot the orbit and it's main properties
 %
 % OUTPUT:
-%   [R,V] State of the body for one orbit period [km, km/s]
+%   [R_pert,V_pert] State of the body [km, km/s]
 %
 % CONTRIBUTORS:
 %   Aditya Kumar
@@ -34,6 +34,7 @@ set(0,'defaultlegendInterpreter','latex');
 
 % Physical parameters
 mu; % Gravitational parameter [km^3/s^2]
+R_e = astroConstants(23); % Earth radius [km]
 
 % Initial condition
 r0; % Initial position [km]
@@ -43,7 +44,8 @@ y0 = [ r0; v0 ]; % Initial state vector
 % Set time span
 a = 1/( 2/norm(r0) - dot(v0,v0)/mu ); % Semi-major axis [km]
 orbit_period = 2*pi*sqrt( a^3/mu ); % Orbital period [1/s]
-tspan = linspace( 0, orbit_period, 1000 ); % Time span
+year = 365*24*60*60; % year [s]
+tspan = linspace( 0, 5*year, 500000 );
 
 % Set options for the ODE solver
 options = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-14 );
@@ -53,35 +55,45 @@ options = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-14 );
 R = Y(:,1:3);
 V = Y(:,4:6);
 
+% Perform the integration for perturbated problem
+[ T_pert, Y_pert ] = ode113( @(t,y) ode_2bp_perturbed( t, y), tspan, y0, options );
+R_pert = Y_pert(:,1:3);
+V_pert = Y_pert(:,4:6);
+
 
 if nargin == 4
 
-    % Plot the orbit centered around the Earth
-    figure()
-        plot3( R(:,1), R(:,2), R(:,3), '.r' );
-        xlabel('x [km]'); ylabel('y [km]'); zlabel('z [km]'); grid on; axis equal;
-        title('Two-body problem orbit','FontWeight','bold','FontSize',14,'Color','k');
-        hold on
-            h1= gca;
-            earth_sphere(h1,'km');
-        hold off   
+% Plot the orbit centered around the Earth
+figure()
+   scatter3( R_pert(:,1), R_pert(:,2), R_pert(:,3), 1, T_pert/orbit_period,'filled');  
+   hold on ,
+        [X,Y,Z] = sphere(50);
+        X = -R_e*X;
+        Y = -R_e*Y;
+        Z = -R_e*Z;
+        plot3( R(:,1), R(:,2), R(:,3), '.r','LineWidth',3);
+        surf(gca,X,Y,Z,imread('earthsurface.jpg'),'LineStyle','none','FaceColor','texturemap');
+        xlabel('x [km]'); ylabel('y [km]'); zlabel('z [km]'); 
+        title('Perturbed Two - Body Problem orbit','FontName', 'Calibri','FontSize',14,'Color','k'); 
+        legend('Perturbed orbit','Unperturbed orbit','Location','northeast'); grid on; axis equal;
+        c = colorbar; c.Label.String = 'n° orbits';
+    hold off
 
 elseif nargin == 5
 
     % Constants of Integration
-    h = cross(R,V); % Angular Momentum [km^2/s]
-    e = cross(V,h)/mu - R./vecnorm(R,2,2); % Eccentricity vector [-]
-    E = (V(:,1).^2 + V(:,2).^2 + V(:,3).^2)/2 - mu*(1./vecnorm(R,2,2)); % Kinetic Energy [km^2/s^2]
-    
+    h_pert = cross(R_pert,V_pert); % Angular Momentum [km^2/s]
+    e_pert = cross(V_pert,h_pert)/mu - R_pert./vecnorm(R_pert,2,2); % Eccentricity vector [-]
+    E_pert = (V_pert(:,1).^2 + V_pert(:,2).^2 + V_pert(:,3).^2)/2 - mu*(1./vecnorm(R_pert,2,2)); % Kinetic Energy [km^2/s^2]
     
     % Plot Angular Momentum in time
     figure()
     hold on
         title('Angular Momentum','FontWeight','bold','FontSize',14);
-        plot(T,vecnorm(h,2,2),'--k','LineWidth',3,'DisplayName','$||h||$');
-        plot(T,h(:,1),'--r','LineWidth',3,'DisplayName','$h_x$');
-        plot(T,h(:,2),'--g','LineWidth',3,'DisplayName','$h_y$');
-        plot(T,h(:,3),'--b','LineWidth',3,'DisplayName','$h_z$');
+        plot(T_pert,vecnorm(h_pert,2,2),'.k','LineWidth',2,'DisplayName','$||h||$');
+        plot(T_pert,h_pert(:,1),'.r','LineWidth',2,'DisplayName','$h_x$');
+        plot(T_pert,h_pert(:,2),'.g','LineWidth',2,'DisplayName','$h_y$');
+        plot(T_pert,h_pert(:,3),'.b','LineWidth',2,'DisplayName','$h_z$');
         ylabel('$||h|| ,\; h_x ,\; h_y ,\; h_z \; \left [ km^2/s \right ]$'); 
         xlabel('$t \left [ s \right ]$');
         hl = legend('show');
@@ -93,23 +105,22 @@ elseif nargin == 5
     figure()
     hold on
         title('Eccentricity Vector','FontWeight','bold','FontSize',14);
-        plot(T,vecnorm(e,2,2),'--k','LineWidth',3,'DisplayName','$||e||$');
-        plot(T,e(:,1),'--r','LineWidth',1.75,'DisplayName','$e_x$');
-        plot(T,e(:,2),'--g','LineWidth',3,'DisplayName','$e_y$');
-        plot(T,e(:,3),'--b','LineWidth',1.75,'DisplayName','$e_z$');
+        plot(T_pert,vecnorm(e_pert,2,2),'.k','LineWidth',2,'DisplayName','$||e||$');
+        plot(T_pert,e_pert(:,1),'.r','LineWidth',2,'DisplayName','$e_x$');
+        plot(T_pert,e_pert(:,2),'.g','LineWidth',2,'DisplayName','$e_y$');
+        plot(T_pert,e_pert(:,3),'.b','LineWidth',2,'DisplayName','$e_z$');
         ylabel('$||e||, \; e_x, \; e_y, \; e_z \; \left [ - \right ]$'); 
         xlabel('$t \left [ s \right ]$');
         hl = legend('show');
         set(hl, 'Interpreter','latex')
-        grid on;  
+        grid on; 
     hold off
     
     % Plot dot product e-h in time
     figure()
     hold on
         title('$e \cdot h$','FontWeight','bold','FontSize',14);
-        %e_dot_p = e(:,1).*h(:,1)+e(:,1).*h(:,1)+e(:,1).*h(:,1);
-        plot(T,dot(e,h,2),'-b','LineWidth',2); 
+        plot(T_pert,dot(e_pert,h_pert,2),'-b','LineWidth',2); 
         ylabel('$|e \cdot h| \; \left  [ km^2/s \right ]$'); 
         xlabel('$t \left [ s \right ]$'); grid on;
     hold off
@@ -118,12 +129,11 @@ elseif nargin == 5
     figure()
     hold on
         title('Kinetic Energy','FontWeight','bold','FontSize',14);
-        plot(T,E,'b','LineWidth',2); 
+        plot(T_pert,E_pert,'b','LineWidth',2); 
         ylabel('$E \; \left  [ km^2/s \right ]$'); 
         xlabel('$t \left [ s \right ]$'); grid on;
     hold off
-    
-end
 
 end
 
+end
